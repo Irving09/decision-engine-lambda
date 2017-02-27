@@ -9,15 +9,15 @@ const jsonSchemaValidator = require('jsonschema').validate;
 const S3 = new AWS.S3(config.S3);
 const LAMBDA = new AWS.Lambda(config.LAMBDA);
 
-exports.handler = (event, context, lambdaCallback) => {
+exports.handler = (event, context, globalCallback) => {
     let error = validate(event);
-    if (error) return lambdaCallback(JSON.stringify(error), null);
+    if (error) return globalCallback(JSON.stringify(error), null);
 
     let tasks = [];
 
     event.data.forEach(function(client) {
         let id = client['id'];
-        let parameters = {
+        let s3parameters = {
             Bucket: 'decision-engine/clients',
             Key: id.toString(),
             ContentType: 'application/json',
@@ -25,7 +25,7 @@ exports.handler = (event, context, lambdaCallback) => {
         };
 
         tasks.push(function(asyncCallback) {
-            S3.putObject(parameters, function(err) {
+            S3.putObject(s3parameters, function(err) {
                 if (err) {
                     return asyncCallback(err, null);
                 }
@@ -36,7 +36,7 @@ exports.handler = (event, context, lambdaCallback) => {
 
     async.parallel(tasks, function(err, results) {
         if (err) {
-            lambdaCallback(err, null);
+            globalCallback(err, null);
         } else {
             const response = {
                 statusCode: 200,
@@ -44,18 +44,13 @@ exports.handler = (event, context, lambdaCallback) => {
                 data: results
             };
 
-            lambdaCallback(null, response);
-            let parameters = {
+            let lambdaParameters = {
                 FunctionName: 'helloworld',
                 InvocationType: 'RequestResponse',
                 Payload: JSON.stringify(response)
             };
-            LAMBDA.invoke(parameters, function(err, data) {
-              if (err) {
-                // could not invoke lambda
-              } else {
-                  // successfully triggered lambda
-              }
+            LAMBDA.invoke(lambdaParameters, function(err, data) {
+              globalCallback(err, response);
             });
         }
     });
