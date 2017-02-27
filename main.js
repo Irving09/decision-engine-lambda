@@ -3,16 +3,14 @@
 const AWS = require('aws-sdk');
 const async = require('async');
 const schema = require('./payload-schema.json');
+const config = require('./config.js');
 const jsonSchemaValidator = require('jsonschema').validate;
 
-const S3 = new AWS.S3({
-  accessKeyId: process.env['AWS_S3_ACCESS_KEY_ID'],
-  secretAccessKey: process.env['AWS_S3_SECRET_ACCESS_KEY'],
-  region: process.env['AWS_S3_REGION']
-});
+const S3 = new AWS.S3(config.S3);
+const LAMBDA = new AWS.Lambda(config.LAMBDA);
 
 exports.handler = (event, context, lambdaCallback) => {
-    let error = validate(event, context);
+    let error = validate(event);
     if (error) return lambdaCallback(JSON.stringify(error), null);
 
     let tasks = [];
@@ -47,10 +45,22 @@ exports.handler = (event, context, lambdaCallback) => {
             };
 
             lambdaCallback(null, response);
+            let parameters = {
+                FunctionName: 'helloworld',
+                InvocationType: 'RequestResponse',
+                Payload: JSON.stringify(response)
+            };
+            LAMBDA.invoke(parameters, function(err, data) {
+              if (err) {
+                // could not invoke lambda
+              } else {
+                  // successfully triggered lambda
+              }
+            });
         }
     });
 
-    function validate(event, context) {
+    function validate(event) {
         let validationResult = jsonSchemaValidator(event, schema);
 
         return validationResult.errors.length ? {
