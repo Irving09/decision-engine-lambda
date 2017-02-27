@@ -1,0 +1,56 @@
+{
+    "title": "Payload for creating clients in the decision engine",
+    "type": "object",
+    "properties": {
+        "data": {
+            "type": "array",
+            "description": "A group of clients that own a stock",
+            "items": {
+                "title": "Client",
+                "description": "A client representation owning a stock",
+                "type": "object",
+                "properties": {
+                    "transactionId": {
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "id": {
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "balance": {
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "stocks": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "type": "string"
+                                },
+                                "quantity":  {
+                                    "type": "number",
+                                    "minimum": 0
+                                }
+                            },
+                            "required": [
+                                "name",
+                                "quantity"
+                            ]
+                        },
+                        "uniqueItems": true
+                    }
+                },
+                "required": [
+                    "transactionId",
+                    "id",
+                    "balance",
+                    "stocks"
+                ]
+            }
+        }
+    },
+    "required": ["data"]
+}
