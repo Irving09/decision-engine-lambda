@@ -18,7 +18,7 @@ exports.handler = function(event, context, globalCallback) {
   event.data.forEach(function (client) {
     let id = client.id;
     let s3parameters = {
-      Bucket: 'decision-engine/clients',
+      Bucket: 'decision-engine-client',
       Key: id.toString(),
       ContentType: 'application/json',
       Body: JSON.stringify(client)
