@@ -6,7 +6,7 @@ module.exports = {
   },
   kon: {
     accessKeyId: process.env['AWS_LAMBDA_ACCESS_KEY_ID'],
-      secretAccessKey: process.env['AWS_LAMBDA_SECRET_ACCESS_KEY'],
+    secretAccessKey: process.env['AWS_LAMBDA_SECRET_ACCESS_KEY'],
     region: process.env['AWS_LAMBDA_REGION']
   }
 };

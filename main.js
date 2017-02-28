@@ -9,7 +9,7 @@ const jsonSchemaValidator = require('jsonschema').validate;
 const S3 = new AWS.S3(credentials['inno']);
 const LAMBDA = new AWS.Lambda(credentials['kon']);
 
-exports.handler = (event, context, globalCallback) => {
+exports.handler = function(event, context, globalCallback) {
   let error = validate(event);
   if (error) return globalCallback(JSON.stringify(error), null);
 
@@ -24,8 +24,8 @@ exports.handler = (event, context, globalCallback) => {
       Body: JSON.stringify(client)
     };
 
-    tasks.push(function (asyncCallback) {
-      S3.putObject(s3parameters, function (err) {
+    tasks.push(function(asyncCallback) {
+      S3.putObject(s3parameters, function(err) {
         if (err) {
           return asyncCallback(err, null);
         }
@@ -49,7 +49,7 @@ exports.handler = (event, context, globalCallback) => {
         InvocationType: 'RequestResponse',
         Payload: JSON.stringify(results)
       };
-      LAMBDA.invoke(lambdaParameters, function (err, data) {
+      LAMBDA.invoke(lambdaParameters, function(err) {
         globalCallback(JSON.stringify(err), response);
       });
     }
