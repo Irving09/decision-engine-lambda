@@ -36,7 +36,7 @@ exports.handler = function(event, context, globalCallback) {
 
   async.parallel(tasks, function (err, results) {
     if (err) {
-      globalCallback(err, null);
+      globalCallback(JSON.stringify(err), null);
     } else {
       const response = {
         statusCode: 200,
