@@ -50,7 +50,8 @@ exports.handler = function(event, context, globalCallback) {
         Payload: JSON.stringify(results)
       };
       LAMBDA.invoke(lambdaParameters, function(err) {
-        globalCallback(JSON.stringify(err), response);
+        if (err) globalCallback(JSON.stringify(err), null);
+        else globalCallback(null, response);
       });
     }
   });
