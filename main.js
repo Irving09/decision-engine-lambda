@@ -27,9 +27,12 @@ exports.handler = function(event, context, globalCallback) {
     tasks.push(function(asyncCallback) {
       S3.putObject(s3parameters, function(err) {
         if (err) {
-          return asyncCallback(err, null);
+          S3.putObject(errorLog(id, 'Failed to put object in S3'), function() {
+              asyncCallback(err, null)
+          });
+        } else {
+            asyncCallback(null, client);
         }
-        asyncCallback(null, client);
       });
     });
   });
@@ -47,11 +50,16 @@ exports.handler = function(event, context, globalCallback) {
       let lambdaParameters = {
         FunctionName: 'helloworld',
         InvocationType: 'RequestResponse',
-        Payload: JSON.stringify(results)
+        Payload: JSON.stringify(event)
       };
       LAMBDA.invoke(lambdaParameters, function(err) {
-        if (err) globalCallback(JSON.stringify(err), null);
-        else globalCallback(null, response);
+        if (err) {
+            S3.putObject(errorLog(id, 'Failed to put object in S3'), function() {
+              globalCallback(JSON.stringify(err), null);
+            });
+        } else {
+            globalCallback(null, response);
+        }
       });
     }
   });
@@ -64,5 +72,19 @@ exports.handler = function(event, context, globalCallback) {
         message: validationResult.errors[0].stack,
         data: event
       } : null;
+  }
+
+  function errorLog(clientId, message) {
+    return {
+      Bucket: 'decision-engine-error-logs',
+      Key: `${clientId} - ${(new Date()).toString()}`,
+      ContentType: 'application/json',
+      Body: JSON.stringify({
+          lambdaFunctionName: context.functionName,
+          awsRequestId: context.awsRequestId,
+          requestPayload: event,
+          message: message
+      })
+    };
   }
 };
